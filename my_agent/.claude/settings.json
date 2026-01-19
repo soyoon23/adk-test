@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "github-workflow@dev-agent-skills": true,
+    "skill-authoring@dev-agent-skills": true
+  }
+}

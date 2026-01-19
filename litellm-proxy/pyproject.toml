@@ -1,0 +1,12 @@
+[project]
+name = "litellm-proxy"
+version = "0.1.0"
+description = "LiteLLM Proxy Server"
+requires-python = ">=3.12"
+dependencies = [
+    "litellm[proxy]>=1.63.0",
+    "langfuse>=3.12.0",
+]
+
+[tool.uv]
+dev-dependencies = []

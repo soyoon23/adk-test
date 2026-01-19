@@ -17,6 +17,7 @@ import logging
 from typing import AsyncGenerator
 from typing_extensions import override
 import os
+import litellm
 
 from google.adk.agents import LlmAgent, BaseAgent, LoopAgent, SequentialAgent
 from google.adk.agents.invocation_context import InvocationContext
@@ -24,18 +25,25 @@ from google.genai import types
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.adk.events import Event
+from google.adk.models.lite_llm import LiteLlm
 from pydantic import BaseModel, Field
 
 # --- Constants ---
 APP_NAME = "story_app"
 USER_ID = "12345"
 SESSION_ID = "123344"
-GEMINI_2_FLASH = "gemini-2.0-flash"
 
 # --- Configure Logging ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-os.environ["LITELLM_PROXY_API_BASE"] = "localhost:11435"
+
+# --- LiteLLM Proxy Configuration ---
+os.environ["LITELLM_PROXY_API_BASE"] = "http://localhost:4000"
+os.environ["LITELLM_PROXY_API_KEY"] = "sk-1234"
+litellm.use_litellm_proxy = True
+
+# --- Model Configuration ---
+MODEL = LiteLlm(model="qwen:7b")
 
 # --- Custom Orchestrator Agent ---
 class StoryFlowAgent(BaseAgent):
@@ -167,7 +175,7 @@ class StoryFlowAgent(BaseAgent):
 # --- Define the individual LLM agents ---
 story_generator = LlmAgent(
     name="StoryGenerator",
-    model=GEMINI_2_FLASH,
+    model=MODEL,
     instruction="""You are a story writer. Write a short story (around 100 words), on the following topic: {topic}""",
     input_schema=None,
     output_key="current_story",  # Key for storing output in session state
@@ -175,7 +183,7 @@ story_generator = LlmAgent(
 
 critic = LlmAgent(
     name="Critic",
-    model=GEMINI_2_FLASH,
+    model=MODEL,
     instruction="""You are a story critic. Review the story provided: {{current_story}}. Provide 1-2 sentences of constructive criticism
 on how to improve it. Focus on plot or character.""",
     input_schema=None,
@@ -184,7 +192,7 @@ on how to improve it. Focus on plot or character.""",
 
 reviser = LlmAgent(
     name="Reviser",
-    model=GEMINI_2_FLASH,
+    model=MODEL,
     instruction="""You are a story reviser. Revise the story provided: {{current_story}}, based on the criticism in
 {{criticism}}. Output only the revised story.""",
     input_schema=None,
@@ -193,7 +201,7 @@ reviser = LlmAgent(
 
 grammar_check = LlmAgent(
     name="GrammarCheck",
-    model=GEMINI_2_FLASH,
+    model=MODEL,
     instruction="""You are a grammar checker. Check the grammar of the story provided: {current_story}. Output only the suggested
 corrections as a list, or output 'Grammar is good!' if there are no errors.""",
     input_schema=None,
@@ -202,7 +210,7 @@ corrections as a list, or output 'Grammar is good!' if there are no errors.""",
 
 tone_check = LlmAgent(
     name="ToneCheck",
-    model=GEMINI_2_FLASH,
+    model=MODEL,
     instruction="""You are a tone analyzer. Analyze the tone of the story provided: {current_story}. Output only one word: 'positive' if
 the tone is generally positive, 'negative' if the tone is generally negative, or 'neutral'
 otherwise.""",
