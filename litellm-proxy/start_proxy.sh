@@ -3,6 +3,21 @@ echo "================================"
 echo "Starting Ollama and LiteLLM Proxy"
 echo "================================"
 
+# Load env vars from litellm-proxy/.env (supports "KEY = \"value\"" with spaces)
+ENV_FILE="/c/Users/sogeh/workspace/adk-test/litellm-proxy/.env"
+if [ -f "$ENV_FILE" ]; then
+  while IFS= read -r line; do
+    case "$line" in
+      ""|\#*) continue ;;
+    esac
+    key="$(echo "$line" | cut -d= -f1 | tr -d '[:space:]')"
+    val="$(echo "$line" | cut -d= -f2- | sed -E 's/^[[:space:]]+|[[:space:]]+$//g; s/^"//; s/"$//')"
+    if [ -n "$key" ]; then
+      export "$key=$val"
+    fi
+  done < "$ENV_FILE"
+fi
+
 # Ollama 시작 (포트 11435)
 echo "[1/2] Starting Ollama on port 11435..."
 OLLAMA_HOST=0.0.0.0:11435 /c/Users/sogeh/AppData/Local/Programs/Ollama/ollama.exe serve &

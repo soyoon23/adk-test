@@ -19,7 +19,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "google-adk", specifier = ">=1.22.1" },
-    { name = "litellm", specifier = ">=1.63.0" },
+    { name = "litellm", specifier = ">=1.73.6" },
 ]
 
 [[package]]
